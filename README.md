@@ -68,6 +68,28 @@ the repository. They are never printed or committed. You can also set the
   plotted values equal the source values. They do not validate the accuracy of
   NASA's measurements.
 
+## Derived terrain products (`lunarmatch/features/terrain.py`)
+
+These are deterministic derived products, **not scores**. Each layer has the
+same shape as the source raster and is labelled "derived from SRTMGL1 v003",
+with its method and parameters.
+
+| Layer | Definition | Window (Atacama tile, centre row) |
+|---|---|---|
+| `slope_deg` | Horn (1981) 3×3 finite differences. East–west spacing uses WGS84 at each row's latitude; north–south spacing uses the meridional radius. Degrees are never treated as metres. | 3 samples ≈ 85 m E–W × 92 m N–S (28.37 m × 30.76 m spacing) |
+| `roughness` | Population standard deviation of raw elevation in an N×N window. It is **not detrended**, so a uniform slope also contributes. | N samples; N=3 ≈ 85 m × 92 m, N=5 ≈ 142 m × 154 m |
+
+- Edge cells, and any cell whose window contains NoData, are **NaN**, never 0.
+- `outputs/slope_2d.html` shows slope computed at full resolution. It uses the
+  same rows and columns, and the same north-up, east-right orientation, as the
+  elevation heatmap.
+
+> **Scale limitation.** SRTMGL1 is sampled about every 30 m. Slope and
+> roughness here describe terrain at **≥30–90 m scale, not lander-leg
+> (metre) scale**. Boulders, small craters and decimetre-scale relief are not
+> resolved, and SRTM radar also smooths fine relief. Leg-scale analysis needs
+> higher-resolution data, such as USGS 3DEP lidar or aerial stereo.
+
 ## Layout
 
 ```text
@@ -76,7 +98,9 @@ visualize_terrain.py             CLI: load -> verify -> 2D/3D HTML
 lunarmatch/config.py             project-root-relative paths, Atacama bbox
 lunarmatch/data/earthdata_client.py   auth, SRTMGL1 search, skip-if-present download
 lunarmatch/data/raster_loader.py      zip extraction, ElevationRaster, stride downsampling
-lunarmatch/visualization/terrain_plots.py  Plotly heatmap + metric 3D surface
+lunarmatch/geodesy.py            WGS84 metres-per-degree, per-row spacing
+lunarmatch/features/terrain.py   slope (Horn) and roughness derived layers
+lunarmatch/visualization/terrain_plots.py  Plotly heatmaps + metric 3D surface
 lunarmatch/experiments/README.md planned extension interfaces (not implemented)
 tests/                           pytest; synthetic big-endian int16 HGT fixtures
 nasa_data/                       data (only the shared tile zip is tracked)
