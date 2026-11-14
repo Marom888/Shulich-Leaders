@@ -34,7 +34,7 @@ the repository. They are never printed or committed. You can also set the
 # Download the Atacama test tile (skipped if nasa_data\S24W070.SRTMGL1.hgt.zip exists)
 .venv\Scripts\python download_nasa.py
 
-# Load, print metadata and spot checks, write outputs\terrain_2d.html and terrain_3d.html
+# Load, print metadata and spot checks, write outputs\terrain_2d.html, terrain_3d.html, slope_2d.html
 .venv\Scripts\python visualize_terrain.py
 .venv\Scripts\python visualize_terrain.py --max-side 721 --vex 2   # options
 
