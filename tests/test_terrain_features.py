@@ -116,3 +116,51 @@ def test_slope_metadata_labels(tmp_path):
     assert layer.params["window_samples"] == 3
     assert "lander-leg" in layer.scale_note
     assert layer.summary()["derived from"] == layer.derived_from
+
+
+# ---------------------------------------------------------------- roughness
+def test_window_std_flat_and_borders():
+    r = tf.window_std(np.full((9, 9), 3000.0), 3)
+    assert np.all(interior(r) == 0)
+    assert np.all(np.isnan(r[0])) and np.all(np.isnan(r[:, -1]))
+    r5 = tf.window_std(np.full((9, 9), 3000.0), 5)
+    assert np.all(np.isnan(r5[:2])) and np.all(r5[2:-2, 2:-2] == 0)
+
+
+def test_window_std_matches_numpy_reference():
+    rng = np.random.default_rng(1)
+    z = 3000 + rng.normal(0, 5, (30, 30))
+    r = tf.window_std(z, 5)
+    for (i, j) in [(2, 2), (10, 17), (27, 27)]:
+        assert r[i, j] == pytest.approx(np.std(z[i - 2:i + 3, j - 2:j + 3]), abs=1e-9)
+
+
+def test_window_std_plane_and_checkerboard():
+    k = 7.0
+    plane = np.tile(np.arange(12) * k, (12, 1))
+    assert np.allclose(interior(tf.window_std(plane, 3)), k * np.sqrt(2 / 3))
+    stripes = np.tile((np.arange(12) % 2) * 10.0, (12, 1))  # columns 0,10,0,...
+    assert np.allclose(interior(tf.window_std(stripes, 3)), 10 * np.sqrt(2 / 9))
+
+
+def test_window_std_rejects_bad_window():
+    for w in (1, 2, 4):
+        with pytest.raises(ValueError):
+            tf.window_std(np.zeros((5, 5)), w)
+
+
+def test_roughness_on_tile(tmp_path):
+    z = np.full((N, N), 2000)
+    z[600, 600] = -32768
+    layer = tf.roughness(load(tmp_path, z), window=5)
+    v = layer.values
+    assert layer.shape == (N, N) and layer.units == "m"
+    assert np.all(np.isnan(v[598:603, 598:603]))            # 5x5 around NoData
+    assert v[597, 600] == 0 and v[600, 603] == 0
+    assert np.all(np.isnan(v[:2])) and np.all(np.isnan(v[:, -2:]))
+    assert not np.any(v == -32768)
+    assert "SRTMGL1" in layer.derived_from and "5x5" in layer.method
+    p = layer.params
+    assert p["window_samples"] == 5
+    assert p["window_m_east_west_centre_row"] == pytest.approx(5 * 85.12, abs=0.2)
+    assert p["window_m_north_south_centre_row"] == pytest.approx(5 * 92.29, abs=0.2)

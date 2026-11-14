@@ -144,3 +144,63 @@ def slope_deg(raster: ElevationRaster, dataset: str = DEFAULT_DATASET) -> Derive
                 "edge_cells": "NaN", "nodata": "NaN-propagating"},
         derived_from=_derived_from(raster, dataset),
     )
+
+
+# --------------------------------------------------------------------------
+# Roughness
+# --------------------------------------------------------------------------
+def window_std(z: np.ndarray, window: int = 3) -> np.ndarray:
+    """Population standard deviation (ddof=0) of ``z`` in a centred window.
+
+    ``window`` must be an odd integer >= 3 (samples per side). The result
+    is NaN where the window is incomplete (border of width window//2) or
+    contains any NaN. It is computed from deviations relative to the centre
+    sample, which avoids numerical cancellation at high elevations.
+    """
+    if window < 3 or window % 2 == 0:
+        raise ValueError("window must be an odd integer >= 3")
+    z = np.asarray(z, dtype=np.float64)
+    h = window // 2
+    p = np.pad(z, h, mode="constant", constant_values=np.nan)
+    nr, nc = z.shape
+    s = np.zeros_like(z)
+    s2 = np.zeros_like(z)
+    for dr in range(window):
+        for dc in range(window):
+            d = p[dr:dr + nr, dc:dc + nc] - z
+            s += d
+            s2 += d * d
+    n = window * window
+    var = s2 / n - (s / n) ** 2
+    np.maximum(var, 0, out=var, where=np.isfinite(var))
+    return np.sqrt(var)
+
+
+def roughness(raster: ElevationRaster, window: int = 3,
+              dataset: str = DEFAULT_DATASET) -> DerivedLayer:
+    """Roughness = standard deviation of elevation (m) in a window x window window.
+
+    Definition: the population std (ddof=0) of the raw elevation samples in a
+    centred ``window`` x ``window`` neighbourhood. The values are **not
+    detrended**, so a uniform slope contributes too. On a plane rising k
+    metres per sample along one axis, a 3x3 window gives k*sqrt(2/3).
+
+    Window size: ``window`` samples per side. On SRTMGL1 at 23.5 S that is
+    about ``window`` x 28.4 m (east-west) by ``window`` x 30.8 m
+    (north-south): 3 samples is about 85 m x 92 m, 5 samples about 142 m x
+    154 m. The exact metres for the tile's centre row are stored in
+    ``params``. See the module docstring: this is not lander-leg-scale
+    roughness.
+    """
+    dx, dy = _spacing(raster)
+    mid = raster.shape[0] // 2
+    vals = window_std(raster.as_float_nan(), window)
+    return DerivedLayer(
+        values=vals, name="roughness", units="m",
+        method=f"std of elevation in {window}x{window} window (not detrended)",
+        params={"window_samples": window,
+                "window_m_east_west_centre_row": round(float(window * dx[mid]), 1),
+                "window_m_north_south_centre_row": round(float(window * dy[mid]), 1),
+                "ddof": 0, "edge_cells": "NaN", "nodata": "NaN-propagating"},
+        derived_from=_derived_from(raster, dataset),
+    )
