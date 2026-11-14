@@ -218,3 +218,15 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---- LunarMatch ----
+# NASA Earthdata credentials: never commit
+.netrc
+_netrc
+*.netrc
+.earthdata*
+# Generated visualizations
+outputs/
+# NASA data: only the shared Atacama tile archive is tracked
+nasa_data/*
+!nasa_data/S24W070.SRTMGL1.hgt.zip
