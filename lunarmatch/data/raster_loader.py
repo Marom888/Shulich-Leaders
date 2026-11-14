@@ -240,6 +240,23 @@ def downsample(raster: ElevationRaster, step: int) -> SampledGrid:
     )
 
 
+def sample_layer(values: np.ndarray, like: SampledGrid) -> SampledGrid:
+    """Stride-sample a full-resolution array on the same rows/cols as ``like``.
+
+    Used to display a derived layer (for example slope) that was computed at
+    full resolution. Values are taken as-is; nothing is recomputed on the
+    decimated grid.
+    """
+    values = np.asarray(values)
+    if values.shape != like.source_shape:
+        raise ValueError(f"shape {values.shape} != source {like.source_shape}")
+    return SampledGrid(
+        values=values[np.ix_(like.rows, like.cols)].astype(np.float64),
+        rows=like.rows, cols=like.cols, lats=like.lats, lons=like.lons,
+        step=like.step, source_shape=like.source_shape,
+    )
+
+
 def verify_samples(raster: ElevationRaster, grid: SampledGrid,
                    n: int = 20, seed: int = 0) -> list[dict]:
     """Compare random sampled cells against the original raster.

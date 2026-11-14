@@ -60,30 +60,70 @@ def _sampling_note(grid: SampledGrid) -> str:
             f"-> {grid.shape[0]}x{grid.shape[1]}; original values, not interpolated")
 
 
-def heatmap_figure(grid: SampledGrid, title: str = "") -> go.Figure:
+# Second single-hue sequential ramp (orange) for derived layers.
+SLOPE_SCALE = [
+    [0.00, "#fde4d8"], [0.17, "#f9c1a6"], [0.33, "#f39a74"],
+    [0.50, "#eb6834"], [0.67, "#c9521f"], [0.83, "#9c3d15"], [1.00, "#6e2a0e"],
+]
+
+
+def _heatmap(grid: SampledGrid, *, colorbar: str, colorscale, hover_value: str,
+             title: str, subtitle: str) -> go.Figure:
+    """North-up, east-right lon/lat heatmap with row/col hover (shared core)."""
     z, lats, cd = _flip_north_up(grid)
     lat0 = float(grid.lats.mean())
     mlat, mlon = metres_per_degree(lat0)
     fig = go.Figure(go.Heatmap(
         z=z, x=grid.lons, y=lats, customdata=cd,
-        colorscale=ELEVATION_SCALE,
-        colorbar=dict(title=dict(text="Elevation (m)")),
+        colorscale=colorscale,
+        colorbar=dict(title=dict(text=colorbar)),
         hoverongaps=False,
         hovertemplate=("lat %{y:.5f}°, lon %{x:.5f}°<br>"
-                       "<b>%{z:.0f} m</b> (original sample)<br>"
+                       f"<b>{hover_value}</b><br>"
                        "raster row %{customdata[0]}, col %{customdata[1]}"
                        "<extra></extra>"),
     ))
     fig.update_layout(
-        title=dict(text=f"{title or 'SRTM elevation'} - 2D heatmap<br>"
-                        f"<sup>{SOURCE_LABEL}; {_sampling_note(grid)}; "
-                        f"NoData shown as gaps</sup>"),
+        title=dict(text=f"{title}<br><sup>{subtitle}</sup>"),
         xaxis=dict(title="Longitude (°E)", constrain="domain"),
         yaxis=dict(title="Latitude (°N)", scaleanchor="x",
                    scaleratio=mlat / mlon, constrain="domain"),
         template="plotly_white", width=900, height=850,
     )
     return fig
+
+
+def heatmap_figure(grid: SampledGrid, title: str = "") -> go.Figure:
+    return _heatmap(
+        grid, colorbar="Elevation (m)", colorscale=ELEVATION_SCALE,
+        hover_value="%{z:.0f} m (original sample)",
+        title=f"{title or 'SRTM elevation'} - 2D heatmap",
+        subtitle=f"{SOURCE_LABEL}; {_sampling_note(grid)}; NoData shown as gaps",
+    )
+
+
+def layer_heatmap_figure(grid: SampledGrid, layer, title: str = "",
+                         colorscale=SLOPE_SCALE, fmt: str = ".1f") -> go.Figure:
+    """Heatmap of a derived layer sampled on the elevation grid's rows/cols.
+
+    ``grid`` must come from :func:`raster_loader.sample_layer`. ``layer`` is a
+    :class:`lunarmatch.features.terrain.DerivedLayer`, which supplies the
+    method, parameters and provenance shown in the title.
+    """
+    r, c = grid.source_shape
+    units = "°" if layer.units == "deg" else f" {layer.units}"
+    params = ", ".join(f"{k}={v}" for k, v in layer.params.items()
+                       if k not in ("edge_cells", "nodata"))
+    return _heatmap(
+        grid, colorbar=f"{layer.name.capitalize()} ({layer.units})",
+        colorscale=colorscale,
+        hover_value=f"%{{z:{fmt}}}{units} {layer.name}",
+        title=(f"{title + ' - ' if title else ''}{layer.name.capitalize()} "
+               f"derived from {layer.derived_from}"),
+        subtitle=(f"{layer.method}; {params}<br>computed at full {r}x{c} resolution, "
+                  f"shown every {grid.step} sample(s) (not interpolated); "
+                  f"NaN (edges/NoData) shown as gaps; {layer.scale_note}"),
+    )
 
 
 def surface_figure(grid: SampledGrid, vertical_exaggeration: float = 3.0,

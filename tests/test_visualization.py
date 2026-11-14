@@ -114,3 +114,36 @@ def test_save_html(grid, tmp_path):
     p = tp.save_html(tp.heatmap_figure(grid[1]), tmp_path / "out" / "t.html")
     text = p.read_text(encoding="utf-8")
     assert p.is_file() and "plotly" in text.lower() and "<html" in text.lower()
+
+
+# ---------------------------------------------------------------- slope plot
+def test_slope_heatmap_values_orientation_and_labels(tmp_path):
+    from conftest import write_hgt
+    from lunarmatch.features import terrain as tf
+
+    r_, c_ = np.mgrid[0:N, 0:N]
+    z = (c_ * 3 + (N - 1 - r_) * 2).astype(np.int16)
+    z[600, 600] = -32768
+    raster = rl.load_raster(write_hgt(tmp_path / "S24W070.hgt", z))
+    grid = rl.downsample(raster, 100)
+    layer = tf.slope_deg(raster)
+    sg = rl.sample_layer(layer.values, grid)
+    # sampled values are the full-resolution slope, untouched
+    assert np.array_equal(sg.values, layer.values[np.ix_(grid.rows, grid.cols)],
+                          equal_nan=True)
+    tr = tp.layer_heatmap_figure(sg, layer).data[0]
+    zf = np.asarray(tr.z, float)
+    assert np.array_equal(zf, sg.values[::-1], equal_nan=True)
+    assert np.all(np.diff(np.asarray(tr.y)) > 0) and np.all(np.diff(np.asarray(tr.x)) > 0)
+    assert np.asarray(tr.customdata)[-1, 0, 0] == 0          # top row = raster row 0
+    assert np.all(np.isnan(zf[-1])) and np.all(np.isnan(zf[0]))   # N & S edges
+    assert np.isnan(zf[6, 6])                                 # NoData (600,600)
+    title = tp.layer_heatmap_figure(sg, layer).layout.title.text
+    for s in ("derived from SRTMGL1", "Horn", "every 100 sample", "lander-leg"):
+        assert s in title
+
+
+def test_sample_layer_shape_check(grid):
+    _, g = grid
+    with pytest.raises(ValueError):
+        rl.sample_layer(np.zeros((5, 5)), g)
