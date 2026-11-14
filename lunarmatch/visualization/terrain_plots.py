@@ -23,10 +23,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 from lunarmatch.data.raster_loader import SampledGrid
-
-WGS84_A = 6378137.0
-WGS84_F = 1 / 298.257223563
-WGS84_E2 = WGS84_F * (2 - WGS84_F)
+from lunarmatch.geodesy import metres_per_degree  # noqa: F401  (re-exported)
 
 # Single-hue sequential ramp (light = low, dark = high).
 ELEVATION_SCALE = [
@@ -35,15 +32,6 @@ ELEVATION_SCALE = [
 ]
 
 SOURCE_LABEL = "NASA SRTMGL1 v003"
-
-
-def metres_per_degree(lat_deg: float) -> tuple[float, float]:
-    """(m per degree latitude, m per degree longitude) on WGS84 at ``lat_deg``."""
-    phi = np.radians(lat_deg)
-    s2 = np.sin(phi) ** 2
-    m = WGS84_A * (1 - WGS84_E2) / (1 - WGS84_E2 * s2) ** 1.5   # meridional
-    n = WGS84_A / np.sqrt(1 - WGS84_E2 * s2)                     # prime vertical
-    return float(m * np.pi / 180), float(n * np.cos(phi) * np.pi / 180)
 
 
 def local_km(grid: SampledGrid) -> tuple[np.ndarray, np.ndarray, float, float]:
