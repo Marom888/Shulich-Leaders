@@ -1,17 +1,19 @@
-# Planned extension points (NOT implemented)
+# Extension points (mostly planned; see status per section)
 
 These are interface sketches meant to keep the current foundation extensible.
 Nothing here is implemented, and no experiment is approved. Only the
 engineering team can approve experiments, by setting `status: approved`
 explicitly. See CLAUDE.md §10–17.
 
-## Experiment catalog — `lunarmatch/experiments/catalog.py`
-- JSON/YAML files, one per experiment, using the schema in CLAUDE.md §11
-  (`experiment_id`, `status` ∈ {draft, approved, deprecated}, `version`,
-  `required_features`, `default_weights`, `matching_algorithm`, `limitations`).
-- `load_catalog(path) -> list[Experiment]` and
-  `approved(catalog) -> list[Experiment]`.
-- Neither function ever changes `status`. Approval is a reviewed git change.
+## Experiment catalog — IMPLEMENTED: `schema.py` and `catalog.json`
+- `catalog.json` is **empty** on purpose. The engineering team adds
+  experiments and approves them through a reviewed git change that sets
+  `"status": "approved"`.
+- `load_catalog(path) -> list[Experiment]` validates the catalog against the
+  CLAUDE.md §11 schema. The rules are documented in `schema.validate`.
+- `approved_experiments(exps)` returns only the experiments marked
+  `approved`.
+- `Experiment` is frozen, and no code changes `status`.
 
 ## Historical incident import — `lunarmatch/history/`
 - `load_incidents(xlsx_path)` reads the Failures and Successes sheets.
@@ -25,7 +27,7 @@ explicitly. See CLAUDE.md §10–17.
 - Lunar CRSs (for example IAU_2015:30100) must be carried through and never
   mixed with EPSG:4326.
 
-## Feature extraction — `lunarmatch/features/`
+## Feature extraction — PARTLY IMPLEMENTED: `lunarmatch/features/terrain.py` (slope, roughness)
 - Signature: `feature(raster: ElevationRaster, **params) -> FeatureLayer`, for
   features such as slope, roughness and gradient.
 - Every layer records its units, the resolution it was computed at, and its
