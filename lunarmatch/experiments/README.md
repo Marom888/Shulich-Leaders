@@ -1,7 +1,7 @@
 # Extension points (mostly planned; see status per section)
 
 These are interface sketches meant to keep the current foundation extensible.
-Nothing here is implemented, and no experiment is approved. Only the
+Sections not marked IMPLEMENTED are not implemented. No experiment is approved. Only the
 engineering team can approve experiments, by setting `status: approved`
 explicitly. See CLAUDE.md §10–17.
 
@@ -28,12 +28,12 @@ explicitly. See CLAUDE.md §10–17.
   mixed with EPSG:4326.
 
 ## Feature extraction — PARTLY IMPLEMENTED: `lunarmatch/features/terrain.py` (slope, roughness)
-- Signature: `feature(raster: ElevationRaster, **params) -> FeatureLayer`, for
+- Signature: `feature(raster: ElevationRaster, **params) -> DerivedLayer`, for
   features such as slope, roughness and gradient.
 - Every layer records its units, the resolution it was computed at, and its
   provenance.
 - Slope must be computed in metric units (see
-  `terrain_plots.metres_per_degree`).
+  `lunarmatch.geodesy`).
 
 ## Matching algorithms — `lunarmatch/matching/`
 - Signature: `match(experiment, lunar_features, candidate_features, weights) -> ranking`.
