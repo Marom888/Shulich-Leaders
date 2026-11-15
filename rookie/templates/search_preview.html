@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rookie Search Component</title>
+<style>
+:root{--bg:#0a0f1d;--bg2:#0f1628;--panel:#131c31;--line:#2a3858;--text:#e9edf6;--muted:#a9b3c9;--faint:#7c88a3;
+  --accent:#7fb3f0;--ok:#5fd0a0;--warn:#f2b84b;--bad:#f08a7e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 40px}
+h1{margin:0 0 4px;font-size:22px}
+.banner{border-left:4px solid var(--warn);background:#2a2412;padding:10px 12px;border-radius:8px;margin:12px 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:14px}
+code{background:#19243d;padding:1px 5px;border-radius:4px}
+/*__RS_CSS__*/
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Rookie search component: design preview</h1>
+  <p style="color:var(--muted);margin:0">Shows each state of the <code>RookieSearch</code> component for design review.</p>
+  <div class="banner"><strong>Preview only.</strong> No search is performed and no results are shown.
+    The "Search complete" card shows placeholder text where a real result message will appear.</div>
+  <div class="grid" id="grid"></div>
+  <p style="color:var(--faint);font-size:12.5px;margin-top:18px" id="meta"></p>
+</div>
+<script type="application/json" id="rs-data">/*__RS_DATA__*/</script>
+<script>/*__RS_JS__*/</script>
+<script>
+(function(){
+var A = JSON.parse(document.getElementById("rs-data").textContent);
+var grid = document.getElementById("grid");
+var opts = A.available ? {animated:A.animated, still:A.still, alt:A.alt, width:A.width, height:A.height, credit:A.credit}
+                       : {missingText:A.reason};
+var states = [
+  ["idle", "Ready when you are."],
+  ["searching", "Sniffing out terrain that matches your target… (animation shown in this state only)"],
+  ["done", "[A real result message from Rookie appears here after a search finishes.]"],
+  ["unavailable", "Search is switched off until the team approves a matching method."],
+  ["error", "[A real error message appears here if a search fails.]"]
+];
+states.forEach(function(s){
+  var c = new RookieSearch(opts); c.setState(s[0], s[1]); grid.appendChild(c.el);
+});
+document.getElementById("meta").textContent = A.available ?
+  ("Animation: " + A.width + "×" + A.height + " px, " + A.frames + " frames, " + A.duration_s + " s loop. " +
+   "With reduced motion enabled, the searching state shows the still first frame.") : A.reason;
+})();
+</script>
+</body>
+</html>

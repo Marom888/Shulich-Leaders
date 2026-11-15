@@ -47,6 +47,81 @@ the repository. They are never printed or committed. You can also set the
 2. any `S24W070.hgt` under `nasa_data/`
 3. any `S24W070.hgt` under the project root
 
+## Rookie: Your Guide to Lunar Testing
+
+Rookie is the user-facing app; LunarMatch stays the scientific engine. It is
+a static, offline web page with no server and no extra dependencies.
+
+```powershell
+.venv\Scripts\python run_rookie.py --open     # builds outputs\rookie\index.html and opens it
+```
+
+- `outputs\rookie\index.html` is the guided journey: lunar target → experiment
+  → parameters → lunar terrain → Earth terrain → results.
+- Demo deep link: `index.html#target=mons_mouton_plateau&exp=footpad_penetration&step=3`
+- `outputs\rookie\search_preview.html` previews every state of the Rookie
+  search animation component.
+- **Inputs:** `data/reference/LunarMatch_database_hackathon.xlsx` (team
+  planning workbook, read-only) and `assets/animations/rookie_search.gif`.
+- **What the app does not do:**
+  - Matching is disabled, so the app shows no scores or rankings, and the
+    search animation plays only during a real search.
+  - Planning experiments are not approved catalog experiments.
+  - Data badges distinguish measured, derived, documented, missing and
+    not-integrated data.
+
+## Moon–Earth terrain comparison
+
+```powershell
+.venv\Scripts\python compare_terrain.py --list-datasets
+.venv\Scripts\python compare_terrain.py --moon-point -45 120 10 --earth-bbox -70 -24 -69 -23 --leg-spacing-m 4
+.venv\Scripts\python run_rookie.py --open        # steps 4 and 6 show the result
+```
+
+- **Lunar region:** any lunar region, given as a point and radius in km, or a
+  box. It's described with Moon-sphere geodesy.
+- **Earth:** windows are screened over the Earth box, and each window gets
+  **per-feature distances** to the lunar reference: Δ p50, Δ p90 and W1 for
+  slope and roughness.
+- **What it never does:** weight, score, threshold or rank. Results are in
+  window-ID order (user decision, 2026-11-15).
+- **Experiment gates:** these come from the algorithm spec. They are shown as
+  **DRAFT, not approved**; today every experiment reports insufficient data,
+  because each one needs features the engine can't compute yet.
+- **Data:** connectors plug in through `lunarmatch/terrain/` (see its
+  README). Until real lunar connectors exist, the default lunar dataset is
+  `MOCK_MOON_DEM`. Rookie then shows a persistent **MOCK DATA** banner and
+  MOCK badges.
+
+## Earth analog discovery (Stage A screening)
+
+Rookie discovers candidate terrain windows anywhere data exists; it does not
+use a list of known analog sites. Stage A works on local data only:
+
+```powershell
+.venv\Scripts\python discover_earth.py --bbox -71 -25 -68 -22                     # W S E N
+.venv\Scripts\python discover_earth.py --bbox -71 -25 -68 -22 --constraint "slope_deg.p90<=10"
+.venv\Scripts\python discover_earth.py --bbox -71 -25 -68 -22 --plan-downloads    # sizes only, no download
+```
+
+- **How it works:** the search box is split into 1° tiles, then into windows
+  of a physical size (default 10 km).
+- **Per window it reports:** elevation, slope and roughness statistics with
+  provenance, cached by source-file hash.
+- **Output:** `outputs/discovery/latest.json`, which Rookie's Results step
+  summarizes as search coverage.
+- **Coverage is explicit:** tiles without local data are reported, never
+  assumed.
+- **Filters:**
+  - windows below the data-quality threshold are marked insufficient data,
+    with no numbers;
+  - user constraints never pass missing values;
+  - windows that pass are unranked.
+- **Not computed:** Moon–Earth similarity, scores and rankings. These wait for
+  approval under CLAUDE.md.
+- **Lunar regions:** `lunarmatch/regions.py` accepts any point and radius, or
+  a bounding box, on the IAU 2015 Moon sphere (`lunarmatch/bodies.py`).
+
 ## Data handling guarantees
 
 - **Pixel-is-point.** HGT samples sit on integer-degree posts. The loader

@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rookie — Lunar Testing Guide</title>
+<style>
+:root{
+  --bg:#0a0f1d; --bg2:#0f1628; --panel:#131c31; --panel2:#19243d; --line:#2a3858;
+  --text:#e9edf6; --muted:#a9b3c9; --faint:#7c88a3;
+  --accent:#7fb3f0; --accent-strong:#3987e5; --harness:#eb6834;
+  --ok:#5fd0a0; --warn:#f2b84b; --bad:#f08a7e; --info:#9ec5f4;
+  --radius:12px; --gap:16px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Hebrew", Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:radial-gradient(1200px 600px at 80% -10%, #16224a 0%, transparent 60%),
+  radial-gradient(900px 500px at -10% 110%, #1a1838 0%, transparent 55%), var(--bg);
+  color:var(--text); font:15px/1.55 var(--font); min-height:100vh; overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.35;
+  background-image:radial-gradient(1px 1px at 20% 30%,#fff 50%,transparent 51%),
+  radial-gradient(1px 1px at 70% 20%,#cfe 50%,transparent 51%),
+  radial-gradient(1px 1px at 40% 80%,#fff 50%,transparent 51%),
+  radial-gradient(1px 1px at 85% 65%,#fff 50%,transparent 51%),
+  radial-gradient(1px 1px at 10% 70%,#dde 50%,transparent 51%);}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 16px 40px;position:relative}
+header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand svg{width:46px;height:46px}
+.brand h1{margin:0;font-size:26px;letter-spacing:.14em;font-weight:800}
+.brand p{margin:0;color:var(--muted);font-size:14px}
+.engine{margin-left:auto;color:var(--faint);font-size:13px;border:1px solid var(--line);
+  border-radius:999px;padding:4px 12px}
+.layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:var(--gap);align-items:start}
+aside.guide{position:sticky;top:16px;display:flex;flex-direction:column;gap:12px}
+.card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);
+  border-radius:var(--radius);padding:16px}
+.mascot-card{padding:12px 14px}
+.mascot-stage{display:flex;justify-content:center}
+.mascot-stage svg{width:210px;height:auto;max-width:100%}
+.placeholder-tag{font-size:11.5px;color:var(--faint);text-align:center;margin:2px 0 8px}
+.bubble{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+  position:relative;min-height:64px}
+.bubble::before{content:"";position:absolute;top:-8px;left:50%;margin-left:-8px;border:8px solid transparent;
+  border-top:0;border-bottom-color:var(--line)}
+.bubble p{margin:0 0 6px}.bubble p:last-child{margin:0}
+.tone-caution{color:#ffd99a}.tone-success{color:#b9f0d6}
+.tone-caution::before{content:"⚠ ";}.tone-success::before{content:"✓ ";}
+nav.steps ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+nav.steps button{all:unset;cursor:pointer;display:flex;gap:10px;align-items:center;width:100%;
+  padding:8px 10px;border-radius:8px;color:var(--muted);box-sizing:border-box}
+nav.steps button[aria-current="step"]{background:var(--panel2);color:var(--text)}
+nav.steps button[disabled]{cursor:not-allowed;opacity:.45}
+nav.steps .num{width:24px;height:24px;border-radius:50%;border:1px solid var(--line);display:grid;
+  place-items:center;font-size:12px;flex:none}
+nav.steps button[aria-current="step"] .num{background:var(--accent-strong);border-color:var(--accent-strong);color:#fff}
+main{min-width:0}
+main h2{margin:0 0 4px;font-size:22px}
+.lead{color:var(--muted);margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.choice{all:unset;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-start;box-sizing:border-box;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+.choice:hover{border-color:var(--accent-strong)}
+.choice[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-strong) inset}
+.choice h3{margin:0 0 4px;font-size:17px}
+.choice p{margin:8px 0 0}
+.choice .pill{align-self:flex-start}
+.kicker{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.small{font-size:13px;color:var(--muted)}
+.pill{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 9px;
+  color:var(--muted);margin:4px 4px 0 0}
+.pill.warn{border-color:#7a5a1e;color:#ffd99a}
+.notice{border-left:4px solid var(--warn);background:#2a2412;padding:10px 12px;border-radius:8px;margin:12px 0}
+.notice.info{border-left-color:var(--accent-strong);background:#121f38}
+.notice h4{margin:0 0 4px;font-size:14px}
+.notice ul{margin:4px 0 0;padding-left:18px}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:13.5px}
+th,td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid var(--line)}
+th{background:var(--panel2);font-weight:600;position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+.badge{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:600;border-radius:6px;
+  padding:2px 8px;border:1px solid currentColor;white-space:nowrap}
+.st-measured{color:var(--ok)}.st-derived{color:#8fe3c0}.st-model_estimate{color:var(--info)}
+.st-documented{color:#c9b6ff}.st-not_integrated{color:var(--muted)}.st-missing{color:var(--bad)}
+.st-control{color:var(--warn)}.st-demo{color:#ff9fd0}
+.cell-note{display:block;color:var(--muted);font-size:12.5px;margin-top:4px}
+.cell-src{display:block;color:var(--faint);font-size:11.5px;margin-top:2px}
+.he{font-size:12.5px;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 14px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.metric{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.metric .v{font-size:22px;font-weight:700}.metric .l{font-size:12px;color:var(--muted)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.tabs button{all:unset;cursor:pointer;padding:6px 12px;border-radius:8px;border:1px solid var(--line);color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--panel2);color:var(--text);border-color:var(--accent-strong)}
+.plot-frame{width:100%;height:min(78vh,860px);border:1px solid var(--line);border-radius:10px;background:#fff}
+.navbar{display:flex;justify-content:space-between;gap:10px;margin-top:20px}
+.btn{all:unset;cursor:pointer;padding:10px 18px;border-radius:10px;background:var(--accent-strong);color:#fff;font-weight:600}
+.btn.secondary{background:transparent;border:1px solid var(--line);color:var(--text)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+dl.kv{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:8px 0}
+dl.kv dt{color:var(--muted)}dl.kv dd{margin:0}
+.mock-banner{background:repeating-linear-gradient(135deg,#3a1d3a,#3a1d3a 12px,#2d1730 12px,#2d1730 24px);
+  border:2px solid #ff9fd0;color:#ffe0f0;border-radius:10px;padding:10px 14px;margin:0 0 14px;font-weight:600}
+.mock-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;color:#ff9fd0;
+  border:1px solid #ff9fd0;border-radius:4px;padding:0 5px;margin-left:6px;vertical-align:middle}
+th button.sort{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
+th button.sort:focus-visible{outline:3px solid var(--warn)}
+td.num{font-variant-numeric:tabular-nums;text-align:right}
+.st-insufficient_data,.st-scale_mismatch{color:var(--muted)}
+footer{margin-top:28px;color:var(--faint);font-size:12.5px;border-top:1px solid var(--line);padding-top:12px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---------------- Rookie mascot animation ---------------- */
+.rk-dog .tail{transform-origin:44px 92px;animation:wag 1.6s ease-in-out infinite}
+.rk-dog .body{transform-origin:100px 100px;animation:breathe 3.2s ease-in-out infinite}
+.rk-dog .head{transform-origin:150px 78px;transition:transform .4s ease}
+.rk-dog .leg{transform-box:fill-box;transform-origin:50% 0}
+.rk-dog .caution-badge{opacity:0;transition:opacity .3s}
+.rk-dog .confetti{opacity:0}
+.mood-looking .rk-dog .head{transform:rotate(-6deg) translate(2px,-1px)}
+.mood-walking .rk-dog .leg.a{animation:step .55s ease-in-out infinite}
+.mood-walking .rk-dog .leg.b{animation:step .55s ease-in-out infinite reverse}
+.mood-walking .rk-dog .tail{animation-duration:.8s}
+.mood-celebrate .rk-dog .dog{animation:hop .9s ease-in-out 2}
+.mood-celebrate .rk-dog .tail{animation-duration:.35s}
+.mood-celebrate .rk-dog .confetti{animation:pop 1.6s ease-out 1 forwards}
+.mood-caution .rk-dog .head{transform:rotate(7deg) translate(0,3px)}
+.mood-caution .rk-dog .ear{transform:rotate(12deg);transform-box:fill-box;transform-origin:50% 0}
+.mood-caution .rk-dog .tail{animation-duration:3.2s}
+.mood-caution .rk-dog .caution-badge{opacity:1}
+@keyframes wag{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(14deg)}}
+@keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.025)}}
+@keyframes step{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-10px)}}
+@keyframes pop{0%{opacity:0;transform:translateY(6px)}30%{opacity:1}100%{opacity:0;transform:translateY(-14px)}}
+@media (prefers-reduced-motion: reduce){
+  .rk-dog *, .rk-dog{animation:none !important;transition:none !important}
+}
+/*__RS_CSS__*/
+@media (max-width: 900px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  aside.guide{position:static;display:grid;grid-template-columns:140px minmax(0,1fr);gap:10px;min-width:0}
+  .mascot-card{grid-row:span 1}
+  .mascot-stage svg{width:130px}
+  nav.steps{grid-column:1 / -1}
+  nav.steps ol{flex-direction:row;flex-wrap:wrap}
+  nav.steps button{width:auto}
+  nav.steps .lbl{display:none}
+  .bubble::before{display:none}
+}
+@media (max-width: 520px){
+  aside.guide{grid-template-columns:minmax(0,1fr)}
+  .brand h1{font-size:22px}
+  .engine{margin-left:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="23" fill="#131c31" stroke="#2a3858"/>
+        <path d="M10 33 A16 16 0 0 1 38 33" fill="none" stroke="#3987e5" stroke-width="2"/>
+        <circle cx="22" cy="22" r="9" fill="#e2b46e"/>
+        <ellipse cx="30" cy="25" rx="7" ry="5" fill="#e2b46e"/>
+        <circle cx="36" cy="23.5" r="2" fill="#1d1a17"/>
+        <ellipse cx="16.5" cy="22" rx="3.5" ry="7" fill="#b9853f" transform="rotate(12 16.5 22)"/>
+        <circle cx="24" cy="20" r="1.6" fill="#1d1a17"/>
+      </svg>
+      <div>
+        <h1>ROOKIE</h1>
+        <p>Your Guide to Lunar Testing</p>
+      </div>
+    </div>
+    <span class="engine">Science engine: LunarMatch</span>
+  </header>
+
+  <div class="layout">
+    <aside class="guide" aria-label="Rookie guide">
+      <div class="card mascot-card">
+        <div class="mascot-stage mood-idle" id="mascot">
+          <svg class="rk-dog" viewBox="0 0 220 170" role="img" aria-labelledby="dogTitle">
+            <title id="dogTitle">Rookie, a guide dog wearing a harness</title>
+            <ellipse cx="110" cy="152" rx="78" ry="7" fill="#000" opacity=".35"/>
+            <g class="dog">
+              <path class="tail" d="M46 92 C30 86 22 70 26 54" fill="none" stroke="#d9a75e" stroke-width="9" stroke-linecap="round"/>
+              <g class="leg b"><rect x="58" y="106" width="13" height="38" rx="6" fill="#c8924a"/><ellipse cx="65" cy="145" rx="9" ry="4.5" fill="#b07c38"/></g>
+              <g class="leg a"><rect x="128" y="106" width="13" height="38" rx="6" fill="#c8924a"/><ellipse cx="135" cy="145" rx="9" ry="4.5" fill="#b07c38"/></g>
+              <g class="body">
+                <ellipse cx="100" cy="96" rx="58" ry="30" fill="#e2b46e"/>
+                <ellipse cx="102" cy="110" rx="44" ry="13" fill="#efcb8f" opacity=".7"/>
+                <!-- guide harness -->
+                <path d="M128 70 C134 84 134 108 128 122" fill="none" stroke="#eb6834" stroke-width="8" stroke-linecap="round"/>
+                <path d="M70 72 C74 84 74 104 70 118" fill="none" stroke="#eb6834" stroke-width="6" stroke-linecap="round"/>
+                <path d="M70 76 L128 74" stroke="#eb6834" stroke-width="6" stroke-linecap="round"/>
+                <rect x="94" y="76" width="22" height="13" rx="3" fill="#0f1628" stroke="#eb6834" stroke-width="1.5"/>
+                <text x="105" y="86" text-anchor="middle" font-size="9" font-weight="700" fill="#e9edf6" font-family="system-ui,sans-serif">R</text>
+                <path d="M86 74 L74 34 L112 30 L116 74" fill="none" stroke="#3b4a6b" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+              </g>
+              <g class="leg a"><rect x="72" y="108" width="13" height="38" rx="6" fill="#e2b46e"/><ellipse cx="79" cy="147" rx="9" ry="4.5" fill="#c8924a"/></g>
+              <g class="leg b"><rect x="142" y="106" width="13" height="40" rx="6" fill="#e2b46e"/><ellipse cx="149" cy="147" rx="9" ry="4.5" fill="#c8924a"/></g>
+              <g class="head">
+                <rect x="136" y="62" width="22" height="30" rx="10" fill="#e2b46e"/>
+                <circle cx="160" cy="58" r="24" fill="#e2b46e"/>
+                <ellipse cx="183" cy="68" rx="17" ry="12" fill="#efcb8f"/>
+                <ellipse cx="197" cy="63" rx="6" ry="5" fill="#1d1a17"/>
+                <path d="M184 76 Q190 80 196 76" fill="none" stroke="#6b4a22" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="166" cy="50" r="4.2" fill="#1d1a17"/>
+                <circle cx="167.4" cy="48.6" r="1.3" fill="#fff"/>
+                <ellipse class="ear" cx="146" cy="56" rx="9" ry="19" fill="#b9853f" transform="rotate(14 146 56)"/>
+                <path d="M139 80 Q152 88 160 80" fill="none" stroke="#3987e5" stroke-width="4" stroke-linecap="round"/>
+              </g>
+              <g class="caution-badge" aria-hidden="true">
+                <path d="M196 14 L212 42 L180 42 Z" fill="#f2b84b" stroke="#0a0f1d" stroke-width="2" stroke-linejoin="round"/>
+                <rect x="194.5" y="22" width="3" height="11" rx="1.5" fill="#0a0f1d"/>
+                <circle cx="196" cy="37.5" r="1.8" fill="#0a0f1d"/>
+              </g>
+              <g class="confetti" aria-hidden="true">
+                <circle cx="120" cy="20" r="3" fill="#7fb3f0"/><circle cx="140" cy="12" r="2.5" fill="#eb6834"/>
+                <circle cx="100" cy="14" r="2.5" fill="#5fd0a0"/><circle cx="160" cy="24" r="2" fill="#f2b84b"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <p class="placeholder-tag">Placeholder mascot: original SVG, to be replaced by the team's final Rookie artwork.</p>
+        <div class="bubble" id="bubble" aria-live="polite"></div>
+      </div>
+      <nav class="steps card" aria-label="Journey steps"><ol id="stepNav"></ol></nav>
+    </aside>
+
+    <main id="main" tabindex="-1"></main>
+  </div>
+
+  <footer id="footer"></footer>
+</div>
+
+<script type="application/json" id="rookie-data">/*__ROOKIE_DATA__*/</script>
+<script>/*__RS_JS__*/</script>
+<script>
+(function(){
+"use strict";
+var D = JSON.parse(document.getElementById("rookie-data").textContent);
+var STEPS = [
+  {id:"region", title:"Lunar target"},
+  {id:"experiment", title:"Experiment"},
+  {id:"parameters", title:"Parameters"},
+  {id:"lunar", title:"Lunar terrain"},
+  {id:"earth", title:"Earth terrain"},
+  {id:"results", title:"Results"}
+];
+var GLYPH = {measured:"●", derived:"◆", model_estimate:"◐", documented:"▤",
+             not_integrated:"○", missing:"✕", control:"◇", demo:"▢"};
+var SHORT = {measured:"Measured", derived:"Derived", model_estimate:"Model estimate",
+             documented:"Documented", not_integrated:"Not integrated", missing:"Missing",
+             control:"Control", demo:"Demo only"};
+var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var state = {step:0, target:null, exp:null, plot:"terrain_2d"};
+try { var saved = JSON.parse(localStorage.getItem("rookie-state") || "null");
+      if (saved) { state.target = saved.target || null; state.exp = saved.exp || null; } } catch(e) {}
+/* Deep link for demos: #target=<key>&exp=<key>&step=<1-6> */
+(function(){
+  var q = {}; (location.hash || "").replace(/^#/, "").split("&").forEach(function(kv){
+    var p = kv.split("="); if (p[0]) q[decodeURIComponent(p[0])] = decodeURIComponent(p[1] || ""); });
+  if (q.target && D.targets.some(function(t){ return t.key === q.target; })) state.target = q.target;
+  if (q.exp && D.experiments.some(function(e){ return e.key === q.exp; })) state.exp = q.exp;
+  var s = parseInt(q.step, 10);
+  if (s >= 1 && s <= STEPS.length && canEnter(s - 1)) state.step = s - 1;
+})();
+
+function h(tag, attrs, kids){
+  var el = document.createElement(tag);
+  if (attrs) for (var k in attrs) {
+    if (k === "text") el.textContent = attrs[k];
+    else if (k === "on") for (var ev in attrs.on) el.addEventListener(ev, attrs.on[ev]);
+    else if (attrs[k] !== null && attrs[k] !== undefined && attrs[k] !== false) el.setAttribute(k, attrs[k]);
+  }
+  (kids || []).forEach(function(c){ if (c) el.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+  return el;
+}
+function badge(st){ return h("span",{"class":"badge st-"+st, title:D.status_labels[st]},
+  [h("span",{"aria-hidden":"true", text:GLYPH[st]}), SHORT[st]]); }
+function he(text){ return h("span",{"class":"he", lang:"he", dir:"rtl", text:text}); }
+function target(){ return D.targets.filter(function(t){return t.key===state.target;})[0] || null; }
+function exp(){ return D.experiments.filter(function(e){return e.key===state.exp;})[0] || null; }
+function journey(){
+  if (!state.target) return null;
+  var ek = state.exp || D.experiments[0].key;
+  return D.journeys[state.target + "|" + ek];
+}
+function canEnter(i){ return i === 0 || (i === 1 && state.target) || (i >= 2 && state.target && state.exp); }
+function save(){ try { localStorage.setItem("rookie-state", JSON.stringify({target:state.target, exp:state.exp})); } catch(e) {} }
+
+/* ---------- mascot ---------- */
+var moodTimer = null;
+function setMood(mood, walkFirst){
+  var m = document.getElementById("mascot");
+  clearTimeout(moodTimer);
+  if (walkFirst && !reduceMotion) {
+    m.className = "mascot-stage mood-walking";
+    moodTimer = setTimeout(function(){ m.className = "mascot-stage mood-" + mood; }, 900);
+  } else m.className = "mascot-stage mood-" + mood;
+}
+function say(messages){
+  var b = document.getElementById("bubble"); b.textContent = "";
+  messages.forEach(function(msg){ b.appendChild(h("p",{"class":"tone-"+msg.tone, text:msg.text})); });
+}
+function guide(walk){
+  var id = STEPS[state.step].id, j = journey(), g = null;
+  if (id === "region" && !state.target) g = {mood:"idle", messages:[{tone:"info",
+    text:"Hi, I'm Rookie. Pick a lunar target region and I'll guide you through what we know, and what we don't."}]};
+  else if (id === "experiment" && !state.exp) g = {mood:"looking", messages:[{tone:"info",
+    text:"Now choose an experiment. It decides which engineering parameters matter."}]};
+  else if (j) g = j[id];
+  var C = D.comparison;
+  if (id === "lunar" && C && C.moon.status === "ok") {
+    g = C.moon.is_mock ? {mood:"caution", messages:[
+        {tone:"caution", text:"These lunar numbers are MOCK data. Real lunar elevation for " + target().name + " isn't loaded yet."},
+        {tone:"info", text:"The method is real: Moon-sphere spacing, Horn slope, the same windows as on Earth."}]}
+      : {mood:"looking", messages:[{tone:"info", text:"These are real lunar terrain descriptors from " + C.moon.dataset_id + "."}]};
+  }
+  if (id === "results" && C && C.rows.length) {
+    g = {mood:"caution", messages:[
+      {tone:"info", text:"I compared " + C.rows_total + " Earth windows with the lunar reference, feature by feature."},
+      {tone: C.contains_mock_data ? "caution" : "info", text: C.contains_mock_data ?
+        "Part of this comparison uses MOCK data, so it describes no real match." :
+        "Distances are topography only. Soil strength data is still missing."},
+      {tone:"info", text:"I don't rank or score sites; you can sort the table yourself."}]};
+  }
+  if (g) { setMood(g.mood, walk); say(g.messages); }
+}
+
+/* ---------- navigation ---------- */
+function renderNav(){
+  var ol = document.getElementById("stepNav"); ol.textContent = "";
+  STEPS.forEach(function(s, i){
+    ol.appendChild(h("li",null,[h("button",{type:"button", "aria-current": i===state.step ? "step" : null,
+      disabled: !canEnter(i), on:{click:function(){ go(i); }}},
+      [h("span",{"class":"num", text:String(i+1)}), h("span",{"class":"lbl", text:s.title})])]));
+  });
+}
+function go(i){
+  if (!canEnter(i)) return;
+  var moved = i !== state.step; state.step = i; render(moved);
+  document.getElementById("main").focus({preventScroll:true});
+  if (moved) window.scrollTo({top:0, behavior: reduceMotion ? "auto" : "smooth"});
+}
+function navbar(){
+  var nextOk = state.step < STEPS.length-1 && canEnter(state.step+1);
+  return h("div",{"class":"navbar"},[
+    h("button",{"class":"btn secondary", type:"button", disabled: state.step===0,
+      on:{click:function(){ go(state.step-1); }}, text:"← Back"}),
+    state.step < STEPS.length-1 ? h("button",{"class":"btn", type:"button", disabled:!nextOk,
+      on:{click:function(){ go(state.step+1); }}, text:"Next: " + STEPS[state.step+1].title + " →"}) : h("span")
+  ]);
+}
+function notice(title, items, kind){
+  return h("div",{"class":"notice" + (kind ? " " + kind : "")},[h("h4",{text:title}),
+    items.length === 1 ? h("p",{style:"margin:0", text:items[0]}) :
+    h("ul",null,items.map(function(t){ return h("li",{text:t}); }))]);
+}
+
+/* ---------- steps ---------- */
+function stepRegion(){
+  var grid = h("div",{"class":"grid"});
+  D.targets.forEach(function(t){
+    grid.appendChild(h("button",{"class":"choice", type:"button", "aria-pressed": String(state.target===t.key),
+      on:{click:function(){ state.target=t.key; save(); render(false); }}},[
+      h("div",{"class":"kicker", text:t.role}), h("h3",{text:t.name}),
+      h("span",{"class":"pill warn", text:t.designation}),
+      h("p",{"class":"small", text:t.status_note}),
+      t.naming_note ? h("p",{"class":"small", text:t.naming_note}) : null,
+      h("p",{"class":"small", text:"Coordinates: " + t.coordinates_note}),
+      h("p",{"class":"small"},["Source: ", h("a",{href:t.source, target:"_blank", rel:"noopener", text:"NASA, 28 Oct 2024"}),
+        " (checked " + t.verified_on + ")"]),
+      h("p",{"class":"small", text:"Workbook: " + t.workbook_ref})
+    ]));
+  });
+  var r = D.reference;
+  return [h("h2",{text:"Choose a lunar target region"}),
+    h("p",{"class":"lead", text:"Both are candidate landing regions. Neither is a confirmed landing site."}),
+    grid,
+    h("div",{"class":"card", style:"margin-top:12px"},[h("div",{"class":"kicker", text:r.role}),
+      h("h3",{style:"margin:2px 0", text:r.name}), h("p",{"class":"small", text:r.status_note}),
+      h("p",{"class":"small"},["Source: ", h("a",{href:r.source, target:"_blank", rel:"noopener", text:"NASA SP-315"}),
+      " · Workbook " + r.workbook_ref])])];
+}
+function stepExperiment(){
+  var grid = h("div",{"class":"grid"});
+  D.experiments.forEach(function(e){
+    var w = e.workbook;
+    grid.appendChild(h("button",{"class":"choice", type:"button", "aria-pressed": String(state.exp===e.key),
+      on:{click:function(){ state.exp=e.key; save(); render(false); }}},[
+      h("div",{"class":"kicker", text:"Planning experiment " + w.id + " · " + w.priority}),
+      h("h3",{text:e.label}), h("p",{"class":"small", text:"Workbook name: " + w.name_en}),
+      h("p",null,[he(w.objective)]),
+      h("span",{"class":"pill", text:e.parameters.length + " parameters"}),
+      h("span",{"class":"pill warn"},["Status: ", he(w.status)])
+    ]));
+  });
+  return [h("h2",{text:"Choose an engineering experiment"}),
+    h("p",{"class":"lead", text:"The experiment decides which engineering parameters Rookie checks."}),
+    notice("Governance", [D.governance.note, "Approved catalog experiments: " +
+      D.governance.approved_catalog_experiments + " of " + D.governance.catalog_experiments + "."], "info"),
+    grid];
+}
+function cell(a){ return h("td",null,[badge(a.status), h("span",{"class":"cell-note", text:a.note}),
+  h("span",{"class":"cell-src", text:a.source})]); }
+function stepParameters(){
+  var e = exp(), t = target();
+  var legend = h("div",{"class":"legend"}, Object.keys(D.status_labels).map(function(k){ return badge(k); }));
+  var tbody = h("tbody");
+  e.parameters.forEach(function(p){
+    tbody.appendChild(h("tr",null,[
+      h("td",null,[h("strong",{text:p.name_en}), h("span",{"class":"cell-note", text:p.id + " · " + p.domain + " · " + p.symbol + " [" + p.units + "]"}),
+        h("span",{"class":"cell-src", text:p.origin}), he(p.limitations_he)]),
+      cell(p.lunar_target), cell(p.apollo_16), cell(p.earth_test)]));
+  });
+  var w = e.workbook;
+  var out = [h("h2",{text:e.label + ": required parameters"}),
+    h("p",{"class":"lead", text:"What each parameter's data status is at the lunar target, at Apollo 16 and at the Earth test region. No measurement is invented."}),
+    legend,
+    h("div",{"class":"table-wrap"},[h("table",null,[h("thead",null,[h("tr",null,[
+      h("th",{scope:"col", text:"Parameter"}), h("th",{scope:"col", text:t.name}),
+      h("th",{scope:"col", text:"Apollo 16 (reference)"}), h("th",{scope:"col", text:"Atacama test tile"})])]), tbody])]),
+    h("div",{"class":"card", style:"margin-top:12px"},[h("h3",{style:"margin:0 0 6px", text:"Workbook plan for " + w.id}),
+      h("dl",{"class":"kv"},[h("dt",{text:"Equipment"}), h("dd",null,[he(w.equipment)]),
+        h("dt",{text:"Deliverable"}), h("dd",null,[he(w.deliverable)]),
+        h("dt",{text:"Controls"}), h("dd",null,[he(w.controls)]),
+        h("dt",{text:"Duration"}), h("dd",null,[he(w.duration)]),
+        h("dt",{text:"Depends on"}), h("dd",{text:w.dependencies})])])];
+  if (e.unresolved.length) out.splice(3,0, notice("Unresolved workbook parameter names",
+    ["Not matched to a defined parameter: " + e.unresolved.join(", ")]));
+  return out;
+}
+function mockBadge(on){ return on ? h("span",{"class":"mock-badge", text:"MOCK"}) : null; }
+function fmt(v, d){ return (v === null || v === undefined) ? "–" : Number(v).toFixed(d === undefined ? 1 : d); }
+function lunarReferenceCard(){
+  var C = D.comparison; if (!C) return null;
+  var M = C.moon, R = M.region;
+  if (M.status !== "ok") return notice("Lunar reference", ["Status: " + M.status]);
+  function metric(v, l){ return h("div",{"class":"metric"},[h("div",{"class":"v"},[v, mockBadge(M.is_mock)]), h("div",{"class":"l", text:l})]); }
+  return h("div",{"class":"card", style:"margin-top:12px"},[
+    h("div",{"class":"kicker", text:"Lunar reference region · " + M.dataset_id}),
+    h("h3",{style:"margin:2px 0 6px"},["Region " + R.kind.replace("_"," ") + " (" + R.area_km2 + " km²)", mockBadge(M.is_mock)]),
+    h("p",{"class":"small", text:"Definition: " + JSON.stringify(R.params) + " · CRS " + R.crs +
+      " · " + M.n_samples + " samples at " + fmt(M.spacing_m.east_west) + " m" +
+      (M.processing.length && M.processing[0].length ? " · processing: " + M.processing[0].join(", ") : "")}),
+    h("div",{"class":"metrics"},[
+      metric(fmt(M.slope_deg.p50) + "°", "median slope"),
+      metric(fmt(M.slope_deg.p90) + "°", "90th percentile slope"),
+      metric(fmt(M.roughness_m.p50, 2) + " m", "median 3×3 roughness"),
+      metric(fmt(M.roughness_m.p90, 2) + " m", "90th percentile roughness")])]);
+}
+function stepLunar(){
+  var t = target();
+  var C = D.comparison;
+  if (C && C.moon.status === "ok") {
+    return [h("h2",{text:"Lunar terrain"}),
+      h("p",{"class":"lead", text:"Terrain descriptors of the lunar region used in the latest comparison run. " +
+        "This region is set when the comparison is run; it is not tied to " + t.name + " unless its coordinates were entered."}),
+      lunarReferenceCard(),
+      C.moon.is_mock ? notice("Mock lunar data", ["These lunar values come from a synthetic MOCK dataset, not real lunar terrain. " +
+        "Real lunar connectors (LOLA/LROC) will replace it."]) : null,
+      notice("Method", ["Slope: Horn 3×3 with Moon-sphere (IAU 2015) metric spacing. Roughness: 3×3 std of elevation, not detrended."], "info")];
+  }
+  return [h("h2",{text:"Lunar terrain: " + t.name}),
+    h("p",{"class":"lead", text:"Rookie only shows lunar terrain computed from real, integrated lunar data."}),
+    notice("Not available yet", D.lunar_terrain.blockers),
+    notice("Why no stand-in data?", ["Rookie never substitutes Earth or synthetic terrain for lunar data. Once a lunar DEM and a Moon geodesy model are integrated, this step will show slope and roughness computed the same way as for Earth."], "info")];
+}
+function stepEarth(){
+  var E = D.earth;
+  if (!E.available) return [h("h2",{text:"Earth terrain"}), notice("Not available", [E.reason])];
+  var s = E.slope.stats, r = E.roughness.stats;
+  function metric(v, l){ return h("div",{"class":"metric"},[h("div",{"class":"v", text:v}), h("div",{"class":"l", text:l})]); }
+  var tabs = h("div",{"class":"tabs", role:"tablist"});
+  var frameHolder = h("div");
+  Object.keys(E.plots).forEach(function(k){
+    var p = E.plots[k];
+    tabs.appendChild(h("button",{type:"button", role:"tab", "aria-selected": String(state.plot===k),
+      on:{click:function(){ state.plot=k; render(false); }}, text:p.title}));
+  });
+  var P = E.plots[state.plot];
+  frameHolder.appendChild(P.available ?
+    h("iframe",{"class":"plot-frame", src:"../" + P.file, title:P.title + " of the Atacama test tile", loading:"lazy"}) :
+    notice("Plot not generated", ["Run: python visualize_terrain.py"]));
+  return [h("h2",{text:"Earth terrain: " + D.earth_region.name}),
+    h("p",{"class":"lead", text:D.earth_region.status_note}),
+    h("div",null,[badge("measured"), " elevation · ", badge("derived"), " slope and roughness · " + E.dataset + ", " + E.tile]),
+    h("div",{"class":"metrics"},[
+      metric(E.elevation_m.min.toFixed(0) + "–" + E.elevation_m.max.toFixed(0) + " m", "Elevation range (measured)"),
+      metric(s.median.toFixed(1) + "°", "Median slope (derived)"),
+      metric(s.p90.toFixed(1) + "°", "90th percentile slope"),
+      metric(r.median.toFixed(1) + " m", "Median roughness, 3×3 window"),
+      metric(E.spacing_m.east_west.toFixed(1) + " × " + E.spacing_m.north_south.toFixed(1) + " m", "Sample spacing E–W × N–S")]),
+    h("p",{"class":"small", text:E.slope.label}), h("p",{"class":"small", text:E.roughness.label}),
+    tabs, frameHolder,
+    notice("Scale limitation", [D.experiments[0].results.limitations[0]], "info")];
+}
+function stepResults(){
+  var e = exp(), R = e.results, E = D.earth;
+  var loc = R.location_wsen ? ("W " + R.location_wsen[0] + "°, S " + R.location_wsen[1] + "°, E " +
+    R.location_wsen[2] + "°, N " + R.location_wsen[3] + "° (sample-centre extent)") : "Not available";
+  return [h("h2",{text:"Results for " + e.label}),
+    h("p",{"class":"lead", text:"Rookie shows what is known about each Earth site, and per-feature terrain distances to the lunar reference. " +
+      "There is no combined similarity score and no ranking."}),
+    searchPanel(),
+    coverageCard(),
+    comparisonCard(),
+    draftGatesCard(),
+    h("div",{"class":"card", style:"margin-top:12px"},[
+      h("div",{"class":"kicker", text:R.site.role}), h("h3",{style:"margin:2px 0 6px", text:R.site.name}),
+      h("span",{"class":"pill warn", text:R.site.designation}),
+      h("dl",{"class":"kv"},[
+        h("dt",{text:"Location"}), h("dd",{text:loc}),
+        h("dt",{text:"Similarity"}), h("dd",{text:"Not computed. " + R.similarity.reason}),
+        h("dt",{text:"Available"}), h("dd",null, R.available_measurements.length ? R.available_measurements.map(function(a){
+          return h("div",null,[badge(a.status), " " + a.name + ": " + a.note]); }) : ["None for this experiment"]),
+        h("dt",{text:"Missing"}), h("dd",null,[h("ul",{style:"margin:0;padding-left:18px"}, R.missing.map(function(m){ return h("li",{text:m}); }))]),
+        h("dt",{text:"Uncertainty"}), h("dd",null,[h("ul",{style:"margin:0;padding-left:18px"}, R.uncertainty.map(function(m){ return h("li",{text:m}); }))]),
+        h("dt",{text:"Limitations"}), h("dd",null,[h("ul",{style:"margin:0;padding-left:18px"}, R.limitations.map(function(m){ return h("li",{text:m}); }))])
+      ])]),
+    notice("What's needed before Rookie can compare sites", D.matching.prerequisites, "info")];
+}
+/* Earth analog search status. The animation runs only during a real search
+   (RookieSearch.run with a task). No search exists while matching is disabled. */
+function searchPanel(){
+  var A = D.search_animation || {available:false, reason:"Rookie animation not configured."};
+  var rs = new RookieSearch(A.available ? {animated:A.animated, still:A.still, alt:A.alt,
+    width:A.width, height:A.height, credit:A.credit} : {missingText:A.reason});
+  if (!D.matching.enabled) {
+    rs.setState("unavailable", "I'm ready to sniff out Earth test sites for " + target().name +
+      ", but the search is switched off until the team approves a matching method. " +
+      "Below is what we know about the current Earth test region.");
+  }
+  return rs.el;
+}
+/* Coverage of the latest real Stage A screening run (python discover_earth.py). */
+function coverageCard(){
+  var R = D.discovery;
+  if (!R) return notice("Search coverage", ["No discovery run yet. Run: python discover_earth.py --bbox W S E N"], "info");
+  var C = R.coverage, pct = (C.fraction_of_request_processed * 100).toFixed(1);
+  return h("div",{"class":"card", style:"margin-top:12px"},[
+    h("div",{"class":"kicker", text:"Earth screening (Stage A) · " + R.created_at}),
+    h("h3",{style:"margin:2px 0 6px", text:"Search coverage"}),
+    h("div",{"class":"metrics"},[
+      h("div",{"class":"metric"},[h("div",{"class":"v", text:C.tiles_processed + " / " + C.tiles_requested}), h("div",{"class":"l", text:"1° tiles searched"})]),
+      h("div",{"class":"metric"},[h("div",{"class":"v", text:pct + "%"}), h("div",{"class":"l", text:"of the requested area"})]),
+      h("div",{"class":"metric"},[h("div",{"class":"v", text:String(R.windows_ok)}), h("div",{"class":"l", text:"windows described (" + R.window_km + " km)"})]),
+      h("div",{"class":"metric"},[h("div",{"class":"v", text:String(R.windows_insufficient)}), h("div",{"class":"l", text:"windows with insufficient data"})])]),
+    h("p",{"class":"small", text:C.statement}),
+    h("p",{"class":"small", text:"Search box (W, S, E, N): " + R.bbox_wsen.join(", ") +
+      (R.constraints.length ? " · Constraints: " + R.constraints.join(", ") + " → " + R.passed + " windows pass (unranked)" : "")}),
+    h("p",{"class":"small", text:"Data: " + R.sources.map(function(s){ return s.dataset + " " + s.tile; }).join("; ")}),
+    h("p",{"class":"small", text:R.governance.note})]);
+}
+/* Per-feature Moon–Earth distances. Engine order is window ID; the user may sort columns.
+   No weights, scores, pass/fail or ranking exist in the data (user decision 2026-11-15). */
+var SORTS = {
+  id: function(r){ return r.id; },
+  e_s90: function(r){ return r.slope.earth_p90; },
+  d_s50: function(r){ return r.slope.d_p50; },
+  d_s90: function(r){ return r.slope.d_p90; },
+  w_s: function(r){ return r.slope.w1; },
+  d_r90: function(r){ return r.rough.d_p90; },
+  w_r: function(r){ return r.rough.w1; }
+};
+state.sort = state.sort || {key:"id", dir:1};
+function comparisonCard(){
+  var C = D.comparison;
+  if (!C) return notice("Terrain comparison", ["No comparison run yet. Run: python compare_terrain.py --moon-point LAT LON RADIUS_KM --earth-bbox W S E N"], "info");
+  var rows = C.rows.slice(), S = state.sort, key = SORTS[S.key];
+  rows.sort(function(a, b){
+    var x = key(a), y = key(b);
+    if (x === undefined || x === null) return 1;            /* missing values always last */
+    if (y === undefined || y === null) return -1;
+    return (x < y ? -1 : x > y ? 1 : 0) * S.dir;
+  });
+  /* mockSrc: which side's data the column depends on ("earth", "both"). */
+  function head(k, label, mockSrc){
+    var active = S.key === k;
+    var mock = (mockSrc === "earth" && C.earth.is_mock) || (mockSrc === "both" && C.contains_mock_data);
+    return h("th",{scope:"col", "aria-sort": active ? (S.dir > 0 ? "ascending" : "descending") : "none"},[
+      h("button",{"class":"sort", type:"button", title:"Sort by " + label,
+        on:{click:function(){ state.sort = {key:k, dir: active ? -S.dir : 1}; render(false); }}},
+        [label, active ? (S.dir > 0 ? " ▲" : " ▼") : ""]), mockBadge(mock)]);
+  }
+  function num(f, k, d){ return h("td",{"class":"num" + (f.status !== "computed" ? " st-" + f.status : "")},
+    [f.status === "computed" ? fmt(f[k], d) : f.status.replace("_"," ")]); }
+  var body = h("tbody");
+  rows.forEach(function(r){
+    body.appendChild(h("tr",null,[
+      h("td",null,[r.id, mockBadge(r.earth_mock), h("span",{"class":"cell-note", text: r.centre ? fmt(r.centre[0],3) + "°, " + fmt(r.centre[1],3) + "°" : ""})]),
+      num(r.slope, "earth_p90"), num(r.slope, "d_p50"), num(r.slope, "d_p90"), num(r.slope, "w1"),
+      num(r.rough, "d_p90", 2), num(r.rough, "w1", 2),
+      h("td",{text: r.passes_filters === true ? "yes" : r.passes_filters === false ? "no" : "–"})]));
+  });
+  return h("div",{"class":"card", style:"margin-top:12px"},[
+    h("div",{"class":"kicker", text:"Terrain comparison · " + C.created_at}),
+    h("h3",{style:"margin:2px 0 6px"},["Per-feature distances to the lunar reference", mockBadge(C.contains_mock_data)]),
+    h("p",{"class":"small", text:"Δ = Earth window minus lunar reference (same descriptor, matched sample spacing). " +
+      "W1 = distribution distance in the feature's unit. Nothing is weighted, combined, thresholded or ranked; " +
+      "rows are listed by window ID and you can sort any column yourself."}),
+    lunarReferenceCard(),
+    h("div",{"class":"table-wrap", style:"margin-top:12px"},[h("table",null,[
+      h("thead",null,[h("tr",null,[
+        head("id","Earth window","earth"), head("e_s90","Slope p90 (°)","earth"), head("d_s50","Δ slope p50 (°)","both"),
+        head("d_s90","Δ slope p90 (°)","both"), head("w_s","W1 slope (°)","both"), head("d_r90","Δ rough p90 (m)","both"),
+        head("w_r","W1 rough (m)","both"), h("th",{scope:"col", text:"Passes filters"})])]), body])]),
+    C.contains_mock_data ? h("p",{"class":"small", text:"Columns marked MOCK depend on synthetic mock data" +
+      (C.earth.is_mock ? " (Earth and Moon)." : " (the lunar reference is mock; the Earth values are real " + C.earth.dataset_id + ").")}) : null,
+    h("p",{"class":"small", text:"Showing " + C.rows.length + " of " + C.rows_total + " windows. Earth data: " +
+      C.earth.dataset_id + (C.earth.is_mock ? " (MOCK)" : "") + ". " + C.earth.coverage.statement}),
+    h("p",{"class":"small", text:C.governance.decision})]);
+}
+function draftGatesCard(){
+  var C = D.comparison; if (!C || !C.experiments_draft.length) return null;
+  return h("div",{"class":"card", style:"margin-top:12px"},[
+    h("div",{"class":"kicker", text:C.experiments_draft[0].label}),
+    h("h3",{style:"margin:2px 0 6px", text:"Experiment requirements (draft spec gates)"}),
+    h("ul",{style:"margin:0;padding-left:18px"}, C.experiments_draft.map(function(d){
+      return h("li",null,[h("strong",{text:d.experiment_id + " " + d.name + ": "}),
+        d.status === "insufficient_data" ? "insufficient data, missing required " + d.missing_required.join(", ")
+          : "partially evaluable (per-feature distances only)"]); })),
+    h("p",{"class":"small", text:"No experiment is approved. These gates come from the unapproved algorithm spec v1.0."})]);
+}
+var RENDER = {region:stepRegion, experiment:stepExperiment, parameters:stepParameters,
+              lunar:stepLunar, earth:stepEarth, results:stepResults};
+
+function render(walk){
+  var m = document.getElementById("main"); m.textContent = "";
+  if (D.comparison && D.comparison.contains_mock_data) {
+    m.appendChild(h("div",{"class":"mock-banner", role:"note",
+      text:"MOCK DATA — not real terrain. The latest comparison run uses synthetic mock datasets; values marked MOCK describe no real place."}));
+  }
+  RENDER[STEPS[state.step].id]().forEach(function(n){ if (n) m.appendChild(n); });
+  m.appendChild(navbar());
+  renderNav(); guide(walk);
+}
+function footer(){
+  var f = document.getElementById("footer"), P = D.provenance;
+  f.appendChild(h("p",{style:"margin:0 0 4px", text:"Rookie is the user-facing product; LunarMatch is its scientific engine. " +
+    "Data: NASA SRTMGL1 v003 (Earth). Planning content: team workbook " + P.workbook + " (sha256 " + P.workbook_sha256.slice(0,12) + "…)."}));
+  f.appendChild(h("p",{style:"margin:0", text:"Generated " + D.generated_at + ". No physical experiments have been performed. Candidate regions are not confirmed landing sites."}));
+}
+footer(); render(false);
+})();
+</script>
+</body>
+</html>
