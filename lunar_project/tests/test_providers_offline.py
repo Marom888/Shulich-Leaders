@@ -20,7 +20,8 @@ HGT = REPO / "S24W070.SRTMGL1.hgt" / "S24W070.hgt"
 
 def test_registry_covers_every_workbook_dataset():
     wb = {d["Dataset_ID"] for d in registry.workbook_datasets()}
-    assert wb and wb == set(registry.list_datasets())
+    assert wb and wb == set(registry.list_datasets(include_proposed=False))
+    assert registry.PROPOSED.isdisjoint(wb)
     for did in registry.list_datasets():
         d = registry.get_provider(did).describe()
         assert d["dataset_id"] == did and d["access"] and d["evidence"]

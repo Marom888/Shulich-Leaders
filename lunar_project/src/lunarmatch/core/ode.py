@@ -42,8 +42,9 @@ class OdeClient:
                        extra: Optional[dict] = None) -> list[dict[str, Any]]:
         west, south, east, north = bbox_lon360
         params = {
-            # results=fp is the form verified to return Product_files with URLs
-            "query": "product", "target": target, "output": "JSON", "results": "fp",
+            # results=fpm (verified 2026-11-15) returns Product_files + metadata such as
+            # Incidence_angle, Emission_angle, Map_resolution, lat/lon bounds, Observation_time
+            "query": "product", "target": target, "output": "JSON", "results": "fpm",
             "ihid": ihid, "iid": iid, "pt": pt,
             "minlat": south, "maxlat": north, "westlon": west, "eastlon": east,
             "limit": limit, "offset": offset,

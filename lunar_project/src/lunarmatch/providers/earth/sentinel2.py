@@ -37,21 +37,38 @@ class Sentinel2Provider(DataProvider):
                            query={"eo:cloud_cover": {"lt": max_cloud}}, max_items=100)
         return [item_to_ref(i) for i in items]
 
+    def illumination_table(self, aoi: AOI, datetime: Optional[str] = None, max_cloud: float = 10.0) -> list[dict]:
+        """Sun elevation/azimuth of every clear scene – lets EXP_10/EXP_SHADOW pick lighting conditions."""
+        rows = []
+        for r in self.search(aoi, datetime=datetime, max_cloud=max_cloud):
+            pr = r.properties
+            rows.append({"item": r.product_id, "datetime": r.datetime, "cloud_cover": pr.get("eo:cloud_cover"),
+                         "sun_elevation_deg": pr.get("view:sun_elevation"), "sun_azimuth_deg": pr.get("view:sun_azimuth")})
+        return sorted(rows, key=lambda x: (x["sun_elevation_deg"] is None, x["sun_elevation_deg"]))
+
     def check_coverage(self, aoi: AOI) -> CoverageReport:
         refs = self.search(aoi, max_cloud=20)
         return CoverageReport(self.info.dataset_id, bool(refs), f"{len(refs)} scene(s) <20% cloud")
 
     def fetch(self, aoi: AOI, bands=("red", "green", "blue", "nir", "swir16", "swir22", "scl"),
-              datetime: Optional[str] = None, max_cloud: float = 10.0, item_id: Optional[str] = None, **kw) -> FetchResult:
+              datetime: Optional[str] = None, max_cloud: float = 10.0, item_id: Optional[str] = None,
+              prefer_low_sun: bool = False, **kw) -> FetchResult:
         self.check_body(aoi, (Body.EARTH,))
         items = stac_items(self, EARTH_SEARCH, "sentinel-2-l2a", aoi, datetime=datetime,
                            query={"eo:cloud_cover": {"lt": max_cloud}}, max_items=100)
         if item_id:
             items = [i for i in items if i["id"] == item_id]
-        item, full = choose_item(items, aoi, key=lambda i: i["properties"].get("eo:cloud_cover", 100))
+        if prefer_low_sun:  # long shadows: closer to lunar landing illumination
+            key = lambda i: (i["properties"].get("view:sun_elevation") or 90, i["properties"].get("eo:cloud_cover", 100))  # noqa: E731
+        else:
+            key = lambda i: i["properties"].get("eo:cloud_cover", 100)  # noqa: E731
+        item, full = choose_item(items, aoi, key=key)
         p = item["properties"]
-        res = FetchResult(self.info.dataset_id, aoi, metadata={"stac_item": item["id"], "datetime": p.get("datetime"),
-                                                               "cloud_cover": p.get("eo:cloud_cover")})
+        res = FetchResult(self.info.dataset_id, aoi, metadata={
+            "stac_item": item["id"], "datetime": p.get("datetime"), "cloud_cover": p.get("eo:cloud_cover"),
+            # illumination/viewing geometry published per scene (verified field names)
+            "sun_elevation_deg": p.get("view:sun_elevation"), "sun_azimuth_deg": p.get("view:sun_azimuth"),
+            "view_incidence_deg": p.get("view:incidence_angle")})
         if not full:
             res.warn("AOI crosses an MGRS tile edge; only one tile read")
         # Processing baseline >= 04.00 adds +1000 offset to L2A DN; Earth Search exposes it as

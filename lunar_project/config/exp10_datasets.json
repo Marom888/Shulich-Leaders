@@ -1,0 +1,18 @@
+{
+  "experiment": "EXP_10",
+  "name": "Terrain-relative navigation",
+  "status": "PROPOSED global variant - workbook lists NAIP/3DEP (USA only) as Earth PRIMARY; update the workbook if approved",
+  "features": {
+    "F_LANDMARK":   {"weight_pct": 40, "moon": ["D_LROC_NAC_MAP"], "earth": ["D_SENT2", "D_NAIP (USA)"], "input": "map-projected image"},
+    "F_RELIEF":     {"weight_pct": 25, "moon": ["D_LROC_DTM", "D_LOLA"], "earth": ["D_COPDEM", "D_EARTH_3DEP (USA)", "D_NASADEM"], "input": "DEM"},
+    "F_TEXTURE":    {"weight_pct": 20, "moon": ["D_LROC_NAC_MAP"], "earth": ["D_SENT2", "D_NAIP (USA)"], "input": "image at common GSD"},
+    "F_VISIBILITY": {"weight_pct": 15, "moon": ["D_LROC_DTM", "D_LOLA"], "earth": ["D_COPDEM", "D_EARTH_3DEP (USA)"], "input": "DEM + camera trajectory (user)"}
+  },
+  "illumination": {"moon": "D_LROC_NAC observation geometry (Incidence_angle) / D_EPHEM", "earth": "Sentinel-2 view:sun_elevation, view:sun_azimuth"},
+  "verified_endpoints_2026_11_15": [
+    "ODE REST pt=BDRNPL (NAC south-pole 1 m mosaic tiles, e.g. NAC_POLE_P892S2250)",
+    "ODE REST pt=SDNDTM (NAC DTM + orthophotos, e.g. NAC_DTM_SHACKRDGE02)",
+    "Planetary Computer STAC cop-dem-glo-30 (asset 'data')",
+    "Earth Search STAC sentinel-2-l2a (view:sun_elevation / view:sun_azimuth properties)"
+  ]
+}

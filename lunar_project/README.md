@@ -64,6 +64,26 @@ Values computed by this code (slope from a DEM, roughness, relief) are always
 * The task's example point (−89.5°, 150°E) lies ~0.6 km outside Site04; the
   test area is the centre of **Site01 "Connecting ridge"** (89.463°S, 222.51°E).
 
+## Focus experiment: EXP_10 terrain-relative navigation
+
+`lunarmatch.experiments.exp10_trn.collect_exp10_inputs(moon_aoi, earth_aoi)` gathers the
+four inputs EXP_10 needs (Moon map image, Moon DEM, Earth image, Earth DEM), block-averages
+all of them to one common GSD (never up-sampled), and writes them with a manifest.
+For a global Earth search it uses two **proposed** datasets that are not yet in the
+approved workbook (see `config/exp10_datasets.json`):
+
+| Role | Moon | Earth (global) | Earth (USA option) |
+|---|---|---|---|
+| Map image (F_LANDMARK, F_TEXTURE) | `D_LROC_NAC_MAP`: 1 m NAC south-pole mosaic tile (ODE `BDRNPL`) or DTM orthophoto | `D_SENT2` red band, 10 m; scene sun elevation/azimuth recorded | `D_NAIP` 0.6 m |
+| DEM (F_RELIEF, F_VISIBILITY) | `D_LROC_DTM` (2–5 m), fallback `D_LOLA` (5 m) | `D_COPDEM` Copernicus GLO-30 (proposed), fallback `D_NASADEM` | `D_EARTH_3DEP` 1 m |
+
+```bash
+python examples/exp10_trn_inputs.py                       # Shackleton ridge vs. Atacama
+python examples/exp10_trn_inputs.py --usa 36.10 -112.10   # USA site: 3DEP + NAIP
+```
+With global data the common GSD is ~30 m (Copernicus DEM). That corresponds to the
+high-altitude phase of a descent, not to final-approach navigation; the manifest says so.
+
 ## Folder layout
 ```
 lunar_project/
@@ -83,7 +103,7 @@ cd lunar_project
 python -m venv .venv
 # Windows: .venv\Scripts\activate     macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt        # on Windows, if rasterio fails: conda install -c conda-forge rasterio
-python -m pytest -q tests              # offline tests (21)
+python -m pytest -q tests              # offline tests
 python examples/shackleton_lola_demo.py      # real LOLA download + validation + plots
 python examples/earth_srtm_local_demo.py     # offline, uses the repo's SRTM tile
 python examples/dataset_status.py --check    # live coverage check of all 19 datasets
