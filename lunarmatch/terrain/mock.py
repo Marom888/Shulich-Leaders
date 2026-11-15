@@ -139,7 +139,9 @@ class MockMoonConnector:
 
     def fetch(self, unit_id):
         w, s, e, n = self.parse(unit_id)
-        lat0, lon0 = (s + n) / 2, (w + e) / 2
+        span = (e - w) % 360 or 360.0                      # handles west > east (antimeridian)
+        lat0 = (s + n) / 2
+        lon0 = (w + span / 2 + 180) % 360 - 180
         per_deg = MOON.mean_radius_m * math.pi / 180
         height = min((n - s) * per_deg, self.max_extent_m)
         width = min(((e - w) % 360 or 360) * per_deg * max(math.cos(math.radians(lat0)), 1e-3),

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rookie 2.0 — Lunar Test Site Discovery</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 48 48" aria-hidden="true" class="logo">
+      <circle cx="24" cy="24" r="23" fill="#131c31" stroke="#2a3858"/>
+      <path d="M10 33 A16 16 0 0 1 38 33" fill="none" stroke="#3987e5" stroke-width="2"/>
+      <circle cx="22" cy="22" r="9" fill="#e2b46e"/><ellipse cx="30" cy="25" rx="7" ry="5" fill="#e2b46e"/>
+      <circle cx="36" cy="23.5" r="2" fill="#1d1a17"/><ellipse cx="16.5" cy="22" rx="3.5" ry="7" fill="#b9853f" transform="rotate(12 16.5 22)"/>
+      <circle cx="24" cy="20" r="1.6" fill="#1d1a17"/>
+    </svg>
+    <div><div class="wordmark">ROOKIE <span class="ver">2.0</span></div><div class="tag">Lunar-to-Earth test site discovery</div></div>
+  </div>
+  <ol class="stepper" id="stepper" aria-label="Mission steps"></ol>
+  <div class="status-pills"><span class="pill" id="enginePill">Engine: checking…</span></div>
+</header>
+<main id="main" tabindex="-1">
+  <section id="screen1" class="screen" aria-labelledby="s1title"></section>
+  <section id="screen2" class="screen" aria-labelledby="s2title" hidden></section>
+  <section id="screen3" class="screen" aria-labelledby="s3title" hidden></section>
+</main>
+<div id="searchOverlay" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="searchTitle"></div>
+<div id="detail" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="detailTitle"></div>
+<footer class="foot" id="foot"></footer>
+<script type="application/json" id="rookie-config">/*__CONFIG__*/</script>
+<script src="plotly.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

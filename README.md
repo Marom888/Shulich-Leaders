@@ -42,10 +42,42 @@ the repository. They are never printed or committed. You can also set the
 .venv\Scripts\python -m pytest -q
 ```
 
-`visualize_terrain.py` looks for the tile in this order:
-1. `nasa_data/S24W070.SRTMGL1.hgt.zip`
-2. any `S24W070.hgt` under `nasa_data/`
-3. any `S24W070.hgt` under the project root
+## Rookie 2.0 (three-screen discovery app)
+
+**Find the site. Explain why. Show how to validate.**
+
+```powershell
+.venv\Scripts\python run_rookie.py --serve --open             # http://127.0.0.1:8765 (local engine, localhost only)
+.venv\Scripts\python run_rookie.py --serve --geocode          # also name areas via OpenStreetMap (sends centroids)
+.venv\Scripts\python run_rookie.py --v2                       # static bundle only (search needs --serve)
+```
+
+1. **Where on the Moon?** Pick a lunar spot on the globe, the experiments, and the search mode.
+2. **Your constraints.** Start location, budget and test-area size. Everything else is under
+   *Advanced experiment settings*. What the Earth site cannot reproduce (vacuum, gravity) is always
+   shown.
+3. **Where to test.** A map of the discovered areas, then for each experiment:
+   - **BEST SITE — NOT YET DETERMINED**, with the reason;
+   - up to three **DISCOVERED CANDIDATES — NOT YET RANKED**, picked for geographic spread;
+   - each card says where, why, what's missing and the next step.
+
+   *Explore site* opens three levels: the decision, why this site, and the technical data.
+
+**What Rookie does not do:**
+- It never names a place unless a geocoder returned it.
+- It never ranks or scores candidates.
+- It offers no candidates for experiments whose required evidence it cannot measure yet.
+
+**Field measurements:** these use `lunarmatch/field_measurements.py`, the future Rookie Scout
+record format. Nothing learns automatically.
+
+**Demo links:**
+- `#experiments=EXP_02&autorun=1` runs a real search.
+- `#job=<id>&exp=EXP_02&site=A&level=2` reopens a result at a given level.
+
+**More documentation:**
+- `docs/engineering/spec_comparison_v1_vs_swir.md`
+- `docs/integration/data_providers_contract.md`, which includes the coarse-to-fine plan
 
 ## Rookie: Your Guide to Lunar Testing
 

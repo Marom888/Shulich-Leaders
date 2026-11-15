@@ -1,0 +1,5 @@
+{
+  "schema": "rookie-analog-catalog/1",
+  "description": "Verified terrestrial analog/reference sites for Ordinary Search. Every entry needs site_id, name, lat, lon, radius_km, role, source_citation, source_url, verified_by and verified_on. Empty until the team adds cited, reviewed entries.",
+  "sites": []
+}

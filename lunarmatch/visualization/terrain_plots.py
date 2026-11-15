@@ -93,12 +93,12 @@ def _heatmap(grid: SampledGrid, *, colorbar: str, colorscale, hover_value: str,
     return fig
 
 
-def heatmap_figure(grid: SampledGrid, title: str = "") -> go.Figure:
+def heatmap_figure(grid: SampledGrid, title: str = "", source_label: str = SOURCE_LABEL) -> go.Figure:
     return _heatmap(
         grid, colorbar="Elevation (m)", colorscale=ELEVATION_SCALE,
         hover_value="%{z:.0f} m (original sample)",
         title=f"{title or 'SRTM elevation'} - 2D heatmap",
-        subtitle=f"{SOURCE_LABEL}; {_sampling_note(grid)}; NoData shown as gaps",
+        subtitle=f"{source_label}; {_sampling_note(grid)}; NoData shown as gaps",
     )
 
 
@@ -127,7 +127,7 @@ def layer_heatmap_figure(grid: SampledGrid, layer, title: str = "",
 
 
 def surface_figure(grid: SampledGrid, vertical_exaggeration: float = 3.0,
-                   title: str = "") -> go.Figure:
+                   title: str = "", source_label: str = SOURCE_LABEL) -> go.Figure:
     if vertical_exaggeration <= 0:
         raise ValueError("vertical_exaggeration must be > 0")
     x_km, y_km, lat0, lon0 = local_km(grid)
@@ -153,7 +153,7 @@ def surface_figure(grid: SampledGrid, vertical_exaggeration: float = 3.0,
     fig.update_layout(
         title=dict(text=f"{title or 'SRTM elevation'} - 3D terrain "
                         f"(vertical exaggeration ×{vertical_exaggeration:g})<br>"
-                        f"<sup>{SOURCE_LABEL}; {_sampling_note(grid)}; "
+                        f"<sup>{source_label}; {_sampling_note(grid)}; "
                         f"x/y = km from ({lat0:.4f}°, {lon0:.4f}°), WGS84 local scaling</sup>"),
         scene=dict(
             xaxis=dict(title="East (km)"),
