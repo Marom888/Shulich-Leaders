@@ -230,3 +230,8 @@ outputs/
 # NASA data: only the shared Atacama tile archive is tracked
 nasa_data/*
 !nasa_data/S24W070.SRTMGL1.hgt.zip
+# Small real proof-of-concept subsets (LOLA Moon, USGS 3DEP Earth), ~5 MB total
+!nasa_data/moon/
+!nasa_data/earth/
+# Local download/cache folders (never committed)
+terrain_cache/

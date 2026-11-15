@@ -106,3 +106,33 @@ tests/                           pytest; synthetic big-endian int16 HGT fixtures
 nasa_data/                       data (only the shared tile zip is tracked)
 outputs/                         generated HTML (git-ignored)
 ```
+
+## Stored real elevation subsets (Moon: LOLA, Earth: USGS 3DEP)
+
+These are small windows cut from the official products. Pixel values, CRS, transform and
+NoData are copied unchanged, and each GeoTIFF records its `SOURCE_URL` and source window in
+its tags. Nothing is synthetic.
+
+| File | Source | Coverage | Grid / CRS | Values |
+|---|---|---|---|---|
+| `nasa_data/moon/lola/LOLA_Site01_ConnectingRidge_2km_surf.tif` (0.32 MB) | NASA PGDA LOLA product 78, Site01 "Connecting ridge" (Barker et al. 2021): https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_surf.tif | 2 × 2 km centred 89.46485°S, 222.10767°E. Window aligned with the polar stereographic grid; lat 89.4183–89.5114°S, lon 217.17–227.12°E. | 400 × 400 px, 5 m, float32. South polar stereographic, sphere R = 1737.4 km (lat₀ −90, lon₀ 0), MOON_ME/DE421. | Elevation 1711.9–1959.5 m above the 1737.4 km sphere |
+| `…_2km_slp.tif` (0.51 MB) | same site, `_slp.tif` | same | same | Slope 0.03–40.3° |
+| `…_2km_toterr.tif` (0.52 MB) | same site, `_toterr.tif` | same | same | RMS height error 0.07–2.70 m |
+| `nasa_data/earth/usgs_3dep/USGS3DEP_1m_MeteorCrater_AZ_1p5km.tif` (3.83 MB) | USGS 3DEP 1 m DEM "USGS 1 Meter 12 x49y388 AZ_NorthEast_D23" (published 2026-06-17), found with the TNM Access API: https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1m/Projects/AZ_NorthEast_D23/TIFF/USGS_1M_12_x49y388_AZ_NorthEast_D23.tif | 1.5 × 1.5 km centred on Meteor Crater, Arizona (35.0275°N, 111.0225°W); lat 35.0207–35.0343°N, lon 111.0307–111.0143°W | 1500 × 1500 px, 1 m, float32, NAD83 / UTM zone 12N (EPSG:26912) | Elevation 1562.4–1750.3 m, NAVD88 (3DEP specification), lidar bare earth |
+
+Notes:
+* LOLA's 5 m grid is about 90 % interpolated between laser tracks; see the PGDA product page.
+* LOLA heights refer to a lunar sphere and 3DEP heights to NAVD88. Absolute elevations on the
+  two bodies are therefore not comparable.
+* Vegetation: Meteor Crater lies in sparsely vegetated high desert on the Colorado Plateau.
+  **Low vegetation cover is assumed, not verified**; no land-cover (NLCD) check was run.
+
+```powershell
+.venv\Scripts\python scripts\download_poc_data.py   # re-create (range reads; existing files reused)
+.venv\Scripts\python scripts\inspect_poc_data.py    # open both, print size/resolution/coverage/range
+```
+
+The foundation's `load_raster()` reads SRTM HGT only, so `scripts/inspect_poc_data.py` opens
+the GeoTIFFs with rasterio into the same `ElevationRaster` container. The LOLA grid is
+projected and measured in metres: use `features.terrain.horn_slope(z, 5, 5)`, not
+`slope_deg`, which assumes a degree grid.
